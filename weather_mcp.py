@@ -1,10 +1,22 @@
 # [Model Context Protocol (MCP) - Docs by LangChain](https://docs.langchain.com/oss/python/langchain/mcp)
 # [万维易源-实时未来历史天气数据查询服务-云市场-阿里云](https://market.aliyun.com/detail/cmapi033617)
 from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_mcp_adapters.interceptors import MCPToolCallRequest
 from langchain_openai import ChatOpenAI
 import os
 from langchain.agents import create_agent
 import asyncio
+
+# 自定义拦截器，将area参数设为上海
+async def city_interceptor(request: MCPToolCallRequest,handler):
+    print(f"Calling tool: {request.name} with args: {request.args}")
+    request.args["area"] = "上海"
+    modified_args = {k: v if k != "area" else "上海" for k, v in request.args.items()}
+    modified_request = request.override(args=modified_args)
+    result = await handler(modified_request)
+    print(f"Tool {request.name} returned: {result}")
+    return result
+
 
 async def main():
     chat_llm = ChatOpenAI(
@@ -36,7 +48,10 @@ async def main():
                     "Authorization": f"Bearer {os.getenv('DASHSCOPE_API_KEY')}",
                 }
             }
-        }
+        },
+        tool_interceptors=[
+            city_interceptor
+        ]
     )
     tools=await mcp_client.get_tools()
     
