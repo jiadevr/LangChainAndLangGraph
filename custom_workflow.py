@@ -9,7 +9,6 @@ from langchain_core.vectorstores import InMemoryVectorStore
 import os
 
 
-
 class CustomState(TypedDict):
     question: str
     rewritten_question: str
@@ -82,11 +81,44 @@ Focus on specific player names, team names, or stat categories mentioned."""
             {"role": "user", "content": state["question"]},
         ]
     )
+    # 返回值： game results with scores WHERE year = 2024 AND championship = true
+    print("_______________rewrite_query____________")
+    print(response.query)
     return {"rewritten_question": response.query}
 
 
 def retrieve_documents(state: CustomState) -> dict:
     docs = retriever.invoke(state["rewritten_question"])
+    # 召回5条文档
+    # [
+    #     Document(
+    #         id="6a432d4d-d6ea-487b-b2f0-ceead8fcdeba",
+    #         metadata={},
+    #         page_content="2024 WNBA Finals: New York Liberty defeated Minnesota Lynx 3-2 to win the championship.",
+    #     ),
+    #     Document(
+    #         id="5556c3f1-b2bd-421d-bec0-014a58708b1e",
+    #         metadata={},
+    #         page_content="August 20, 2024: Las Vegas Aces 92, Phoenix Mercury 84. A'ja Wilson scored 35 points.",
+    #     ),
+    #     Document(
+    #         id="1a92c07e-a632-4289-a1d1-cec8b9514001",
+    #         metadata={},
+    #         page_content="June 15, 2024: Indiana Fever 85, Chicago Sky 79. Caitlin Clark had 23 points and 8 assists.",
+    #     ),
+    #     Document(
+    #         id="4807b9d0-cd58-4dd2-8bb8-989527ffefd6",
+    #         metadata={},
+    #         page_content="A'ja Wilson 2024 season stats: 26.9 PPG, 11.9 RPG, 2.6 BPG. Won MVP award.",
+    #     ),
+    #     Document(
+    #         id="17de3537-e79e-4f74-baf1-c7a52d600f53",
+    #         metadata={},
+    #         page_content="Breanna Stewart 2024 stats: 20.4 PPG, 8.5 RPG, 3.5 APG.",
+    #     ),
+    # ]
+    print("_______________retrieve_documents__________")
+    print(docs)
     return {"documents": [doc.page_content for doc in docs]}
 
 
@@ -110,4 +142,5 @@ workflow = (
 )
 
 result = workflow.invoke({"question": "Who won the 2024 WNBA Championship?"})
+print("_______________final_answer__________")
 print(result["answer"])
